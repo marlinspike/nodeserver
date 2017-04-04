@@ -1,3 +1,4 @@
+
 /**
  * Created by reuben on 4/1/17.
  */
@@ -8,6 +9,7 @@ var {mongoose} = require('./db/mongoose');
 var {Todo} = require('./models/todo');
 var {User} = require('./models/user');
 const {ObjectID} = require('mongodb');
+const _ = require('lodash');
 
 var app = express();
 app.use(bodyParser.json());
@@ -26,7 +28,7 @@ app.post('/todos',(req, res) => {
 
 });
 
-//POST
+//GET
 app.get('/todos',(req, res) => {
     "use strict";
     Todo.find().then((todos) => {
@@ -36,6 +38,70 @@ app.get('/todos',(req, res) => {
     })
 });
 
+
+app.patch('/todos/:id', (req, res) => {
+    "use strict";
+   var id = req.params.id;
+   var body = _.pick(req.body, ['text', 'completed']);
+
+   if(! ObjectID.isValid(id)) {
+        res.status(400).send(`Invalid ID: ${id}`);
+        return;
+   }
+
+   if(_.isBoolean(body.completed) && body.completed) {
+       body.completedAt = new Date().getTime();
+   } else {
+        body.completed = false;
+        body.completedAt = null;
+   }
+
+   Todo.findByIdAndUpdate(id, {$set: body}, {new: true}).then((todo) => {
+       if(!todo) {
+           return response.status(404).send('Error updating todo');
+       }
+       response.send({todo});
+
+   }).catch((e) => {
+       res.status(400).send();
+   });
+
+});
+
+//Post/{id}/{todo}
+app.post('/todos/:id/',(req,res) => {
+    "use strict";
+    var todo = Todo.findById(req.params.id);
+    var update = req.body.uTodo;
+
+    todo.text = update.text;
+    todo.completed = update.completed;
+    todo.completedAt = update.completedAt;
+    todo.update().then((todo) => {
+        res.send({todo});
+    }, (e) => {
+        res.status(400).send({todo, error_code: e})
+    })
+});
+
+
+//Remove
+//DEL/id
+app.delete('/todos/:id', (req, res) => {
+    "use strict";
+   var id = req.params.id;
+    if(! ObjectID.isValid(id)) {
+        res.status(400).send(`Invalid ID: ${id}`);
+        return;
+    }
+    Todo.findByIdAndRemove(id).then((todo) => {
+        res.send(todo);
+        console.log(`Deleted ID: ${id}`);
+    }, (err) => {
+        res.status(400).send({todo, error_code:err});
+        console.log('Error deleting Todo Item');
+    });
+});
 
 //Get Todo by ID
 //GET /todos/1234
@@ -48,10 +114,10 @@ app.get('/todos/:id', (req, res) => {
 
    Todo.findById(id).then((todo) => {
         res.send({todo});
-
+        console.log('Wrote it!');
    }, (e) => {
         res.status(400).send({todo, error_code:'404'});
-
+        console.log('Error!!');
    });
 
 });
@@ -98,4 +164,62 @@ item.find().byfirst('Reuben').exec((err, todoItem) => {
 
 */
 
+/*
 module.exports = {app};
+const express = require('express');
+const hbs = require('hbs');
+const fs = require('fs');
+const port = process.env.PORT || 3000;
+
+var app = express();
+hbs.registerPartials(__dirname + '/views/partials/');
+app.set('view engine', 'hbs');
+
+
+
+app.use((req, res, next) => {
+    var now = new Date().toString();
+    var log = `${now}: ${req.method}, ${req.url}`;
+    console.log(log);
+    fs.appendFile('server.log', log + '\n', (err) => {
+    if(err) {
+        console.log('Unable to append to server log');
+    }
+    });
+    next();
+});
+
+
+
+app.use(express.static(__dirname + '/public/'));
+
+hbs.registerHelper('screamIt', (textToScream) => {
+    return textToScream.toUpperCase()
+});
+
+app.get('/', (req, res) => {
+    //res.send(`<h2>Hello World, from Express!!</h2>`);
+    res.render('home.hbs',{
+        pageTitle: 'Home Page',
+        currentYear: new Date().toString(),
+        welcomeMessage: `Welcome to this website, hope you like it!`
+    })
+});
+
+app.get('/about', (req, res) =>{
+    res.render('about.hbs', {
+        pageTitle: 'About Page',
+        currentYear: new Date().getFullYear()
+    });
+});
+
+app.get('/bad', (req, res) => {
+    res.send({
+        errorMessage: 'Unable to respond.'
+    });
+});
+
+app.listen(port, () => {
+    console.log(`Server is up on port ${port}`);
+});
+*/
