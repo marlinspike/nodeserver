@@ -2,6 +2,11 @@
 /**
  * Created by reuben on 4/1/17.
  */
+
+/*Heroku */
+const port = process.env.PORT || 3000;
+
+
 var express = require('express');
 var bodyParser = require('body-parser');
 
@@ -123,8 +128,8 @@ app.get('/todos/:id', (req, res) => {
 });
 
 
-app.listen(3000, () => {
-    console.log('Server started on port 3000');
+app.listen(port, () => {
+    console.log(`Server started on port ${port}`);
 });
 
 
