@@ -4,8 +4,8 @@
  */
 
 /*Heroku */
+var env = process.env.NODE_ENV || 'development';
 const port = process.env.PORT || 3000;
-
 
 var express = require('express');
 var bodyParser = require('body-parser');
@@ -18,6 +18,18 @@ const _ = require('lodash');
 
 var app = express();
 app.use(bodyParser.json());
+
+//Set up databases
+if(env === 'development') {
+    process.env.PORT = 3000;
+    process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoApp';
+} else if (env === 'test') {
+    process.env.PORT = 3000;
+    process.env.MONGODB_URI = 'mongodb://localhost:27017/TodoApp_Test';
+}
+
+console.log(`----------- DB: ${process.env.MONGODB_URI}-------------`);
+
 
 //POST
 app.post('/todos',(req, res) => {
