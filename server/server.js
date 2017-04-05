@@ -73,6 +73,7 @@ app.patch('/todos/:id', (req, res) => {
 
 });
 
+/*
 //Post/{id}/{todo}
 app.post('/todos/:id/',(req,res) => {
     "use strict";
@@ -88,7 +89,7 @@ app.post('/todos/:id/',(req,res) => {
         res.status(400).send({todo, error_code: e})
     })
 });
-
+*/
 
 //Remove
 //DEL/id
